@@ -20,15 +20,15 @@ class Tenant:
 
     @staticmethod
     def from_db_row(row) -> "Tenant":
-        """Create Tenant from database row with position-based unpacking."""
+        """Create Tenant from database row with name-based column access."""
         return Tenant(
-            id=row[0],
-            name=row[1],
-            slug=row[2],
-            is_active=row[3],
-            settings=row[4],
-            created_at=row[5],
-            updated_at=row[6],
+            id=row["id"],
+            name=row["name"],
+            slug=row["slug"],
+            is_active=row["is_active"],
+            settings=row["settings"],
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
         )
 
     def clone_with_id(self, new_id: UUID) -> "Tenant":

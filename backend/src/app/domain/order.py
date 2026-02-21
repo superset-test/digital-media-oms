@@ -31,26 +31,26 @@ class Order:
 
     @staticmethod
     def from_db_row(row) -> "Order":
-        """Create Order from database row with position-based unpacking."""
+        """Create Order from database row with name-based column access."""
         return Order(
-            id=row[0],
-            tenant_id=row[1],
-            advertiser_id=row[2],
-            agency_id=row[3],
-            order_number=row[4],
-            order_name=row[5],
-            status=row[6],
-            start_date=row[7],
-            end_date=row[8],
-            total_amount=Decimal(str(row[9])),
-            currency=row[10],
-            payment_terms=row[11],
-            notes=row[12],
-            created_by=row[13],
-            approved_by=row[14],
-            approved_at=row[15],
-            created_at=row[16],
-            updated_at=row[17],
+            id=row["id"],
+            tenant_id=row["tenant_id"],
+            advertiser_id=row["advertiser_id"],
+            agency_id=row["agency_id"],
+            order_number=row["order_number"],
+            order_name=row["order_name"],
+            status=row["status"],
+            start_date=row["start_date"],
+            end_date=row["end_date"],
+            total_amount=Decimal(str(row["total_amount"])),
+            currency=row["currency"],
+            payment_terms=row["payment_terms"],
+            notes=row["notes"],
+            created_by=row["created_by"],
+            approved_by=row["approved_by"],
+            approved_at=row["approved_at"],
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
         )
 
     def clone_with_id(self, new_id: UUID) -> "Order":

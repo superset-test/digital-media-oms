@@ -23,18 +23,18 @@ class AdUnit:
 
     @staticmethod
     def from_db_row(row) -> "AdUnit":
-        """Create AdUnit from database row with position-based unpacking."""
+        """Create AdUnit from database row with name-based column access."""
         return AdUnit(
-            id=row[0],
-            tenant_id=row[1],
-            placement_id=row[2],
-            name=row[3],
-            description=row[4],
-            dimensions=row[5],
-            specifications=row[6],
-            is_active=row[7],
-            created_at=row[8],
-            updated_at=row[9],
+            id=row["id"],
+            tenant_id=row["tenant_id"],
+            placement_id=row["placement_id"],
+            name=row["name"],
+            description=row["description"],
+            dimensions=row["dimensions"],
+            specifications=row["specifications"],
+            is_active=row["is_active"],
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
         )
 
     def clone_with_id(self, new_id: UUID) -> "AdUnit":

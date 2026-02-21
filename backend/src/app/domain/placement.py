@@ -21,17 +21,17 @@ class Placement:
 
     @staticmethod
     def from_db_row(row) -> "Placement":
-        """Create Placement from database row with position-based unpacking."""
+        """Create Placement from database row with name-based column access."""
         return Placement(
-            id=row[0],
-            tenant_id=row[1],
-            name=row[2],
-            description=row[3],
-            medium=row[4],
-            type=row[5],
-            is_active=row[6],
-            created_at=row[7],
-            updated_at=row[8],
+            id=row["id"],
+            tenant_id=row["tenant_id"],
+            name=row["name"],
+            description=row["description"],
+            medium=row["medium"],
+            type=row["type"],
+            is_active=row["is_active"],
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
         )
 
     def clone_with_id(self, new_id: UUID) -> "Placement":

@@ -36,7 +36,7 @@
 
 ## Remaining Work ⏳
 
-### Phase 4: Services (0% Complete)
+### Phase 4: Services (20% Complete)
 All services need to:
 - Use `SingletonMeta`
 - Instantiate repositories and `PostgresProvider` in `__init__`
@@ -45,8 +45,8 @@ All services need to:
 - Release connection in `finally` block
 
 Files needed:
-- ⏳ `services/tenant_service.py`
-- ⏳ `services/user_service.py` (with password hashing via PasswordManager)
+- ✅ `services/tenant_service.py`
+- ✅ `services/user_service.py` (with password hashing via PasswordManager)
 - ⏳ `services/agency_service.py`
 - ⏳ `services/advertiser_service.py`
 - ⏳ `services/contact_service.py` (validate agency XOR advertiser)
@@ -56,7 +56,7 @@ Files needed:
 - ⏳ `services/order_service.py` (order workflow management)
 - ⏳ `services/line_item_service.py` (automatic order total recalculation)
 
-### Phase 5: Pydantic Models (0% Complete)
+### Phase 5: Pydantic Models (20% Complete)
 All models need to:
 - Inherit from `AppBaseModel`
 - Use `Field(description=..., examples=[...])`
@@ -64,8 +64,8 @@ All models need to:
 - Convert UUIDs to strings in responses
 
 Files needed:
-- ⏳ `controllers/models/tenant_models.py`
-- ⏳ `controllers/models/user_models.py` (with AuthRequest/AuthResponse)
+- ✅ `controllers/models/tenant_models.py`
+- ✅ `controllers/models/user_models.py` (with AuthRequest/AuthResponse)
 - ⏳ `controllers/models/agency_models.py`
 - ⏳ `controllers/models/advertiser_models.py`
 - ⏳ `controllers/models/contact_models.py`
@@ -75,15 +75,14 @@ Files needed:
 - ⏳ `controllers/models/order_models.py`
 - ⏳ `controllers/models/line_item_models.py`
 
-### Phase 6: Authentication (0% Complete)
-- ⏳ `auth/jwt.py` - JWT token creation and validation with python-jose
-- ⏳ `auth/dependencies.py` - FastAPI dependencies:
+### Phase 6: Authentication (100% Complete)
+- ✅ `auth/jwt.py` - JWT token creation and validation with python-jose
+- ✅ `auth/dependencies.py` - FastAPI dependencies:
   - `get_current_user()` - Decode JWT, fetch and return User
-  - `ensure_current_user_tenant_admin()` - Verify admin/manager role
-  - `get_platform_admin()` - Platform-level admin check
-  - `verify_user_owns_resource()` - Tenant ownership validation
+  - `ensure_current_user_super_admin()` - Verify super_admin role
+  - Fine-grained permission checks in controllers
 
-### Phase 7: Controllers (0% Complete)
+### Phase 7: Controllers (20% Complete)
 All controllers need to:
 - Create module-level `router = APIRouter()`
 - Use `Depends(get_current_user)` for auth (except /auth/login)
@@ -92,8 +91,8 @@ All controllers need to:
 - Validate tenant ownership before operations
 
 Files needed:
-- ⏳ `controllers/tenants.py`
-- ⏳ `controllers/users.py` (with /auth/login endpoint)
+- ✅ `controllers/tenants.py`
+- ✅ `controllers/users.py` (with /auth/login endpoint)
 - ⏳ `controllers/agencies.py`
 - ⏳ `controllers/advertisers.py`
 - ⏳ `controllers/contacts.py`

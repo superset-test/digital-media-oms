@@ -27,23 +27,23 @@ class Contact:
 
     @staticmethod
     def from_db_row(row) -> "Contact":
-        """Create Contact from database row with position-based unpacking."""
+        """Create Contact from database row with name-based column access."""
         return Contact(
-            id=row[0],
-            tenant_id=row[1],
-            agency_id=row[2],
-            advertiser_id=row[3],
-            first_name=row[4],
-            last_name=row[5],
-            title=row[6],
-            email=row[7],
-            phone=row[8],
-            mobile=row[9],
-            notes=row[10],
-            is_primary=row[11],
-            is_active=row[12],
-            created_at=row[13],
-            updated_at=row[14],
+            id=row["id"],
+            tenant_id=row["tenant_id"],
+            agency_id=row["agency_id"],
+            advertiser_id=row["advertiser_id"],
+            first_name=row["first_name"],
+            last_name=row["last_name"],
+            title=row["title"],
+            email=row["email"],
+            phone=row["phone"],
+            mobile=row["mobile"],
+            notes=row["notes"],
+            is_primary=row["is_primary"],
+            is_active=row["is_active"],
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
         )
 
     def clone_with_id(self, new_id: UUID) -> "Contact":

@@ -28,23 +28,23 @@ class RateCard:
 
     @staticmethod
     def from_db_row(row) -> "RateCard":
-        """Create RateCard from database row with position-based unpacking."""
+        """Create RateCard from database row with name-based column access."""
         return RateCard(
-            id=row[0],
-            tenant_id=row[1],
-            ad_unit_id=row[2],
-            name=row[3],
-            effective_date=row[4],
-            expiration_date=row[5],
-            base_rate=Decimal(str(row[6])),
-            currency=row[7],
-            rate_type=row[8],
-            minimum_quantity=row[9],
-            discount_percentage=Decimal(str(row[10])),
-            notes=row[11],
-            is_active=row[12],
-            created_at=row[13],
-            updated_at=row[14],
+            id=row["id"],
+            tenant_id=row["tenant_id"],
+            ad_unit_id=row["ad_unit_id"],
+            name=row["name"],
+            effective_date=row["effective_date"],
+            expiration_date=row["expiration_date"],
+            base_rate=Decimal(str(row["base_rate"])),
+            currency=row["currency"],
+            rate_type=row["rate_type"],
+            minimum_quantity=row["minimum_quantity"],
+            discount_percentage=Decimal(str(row["discount_percentage"])),
+            notes=row["notes"],
+            is_active=row["is_active"],
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
         )
 
     def clone_with_id(self, new_id: UUID) -> "RateCard":

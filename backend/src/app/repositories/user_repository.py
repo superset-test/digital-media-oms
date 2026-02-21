@@ -6,7 +6,11 @@ from uuid import UUID
 import asyncpg
 
 from app.domain.user import User
-from app.utils import SingletonMeta
+from app.utils import SingletonMeta, build_update_query
+
+_COLUMNS = (
+    "id, tenant_id, email, hashed_password, full_name, role, is_active, created_at, updated_at"
+)
 
 
 class UserRepository(metaclass=SingletonMeta):
@@ -25,10 +29,10 @@ class UserRepository(metaclass=SingletonMeta):
         """Create a new user."""
         try:
             row = await connection.fetchrow(
-                """
+                f"""
                 INSERT INTO users (tenant_id, email, hashed_password, full_name, role, is_active)
                 VALUES ($1, $2, $3, $4, $5, $6)
-                RETURNING *
+                RETURNING {_COLUMNS}
                 """,
                 tenant_id,
                 email,
@@ -45,7 +49,7 @@ class UserRepository(metaclass=SingletonMeta):
     async def get_by_id(self, connection: asyncpg.Connection, user_id: UUID) -> User | None:
         """Get user by ID."""
         try:
-            row = await connection.fetchrow("SELECT * FROM users WHERE id = $1", user_id)
+            row = await connection.fetchrow(f"SELECT {_COLUMNS} FROM users WHERE id = $1", user_id)
             return User.from_db_row(row) if row else None
         except Exception as e:
             traceback.print_exc()
@@ -57,7 +61,7 @@ class UserRepository(metaclass=SingletonMeta):
         """Get user by email within tenant."""
         try:
             row = await connection.fetchrow(
-                "SELECT * FROM users WHERE tenant_id = $1 AND email = $2",
+                f"SELECT {_COLUMNS} FROM users WHERE tenant_id = $1 AND email = $2",
                 tenant_id,
                 email,
             )
@@ -72,8 +76,8 @@ class UserRepository(metaclass=SingletonMeta):
         """List users by tenant."""
         try:
             rows = await connection.fetch(
-                """
-                SELECT * FROM users
+                f"""
+                SELECT {_COLUMNS} FROM users
                 WHERE tenant_id = $1 AND ($2 = false OR is_active = true)
                 ORDER BY email
                 """,
@@ -88,22 +92,7 @@ class UserRepository(metaclass=SingletonMeta):
     async def update(self, connection: asyncpg.Connection, user_id: UUID, **kwargs) -> User:
         """Update a user."""
         try:
-            set_clauses = []
-            values = []
-            param_num = 1
-
-            for key, value in kwargs.items():
-                set_clauses.append(f"{key} = ${param_num}")
-                values.append(value)
-                param_num += 1
-
-            values.append(user_id)
-            query = f"""
-                UPDATE users
-                SET {", ".join(set_clauses)}
-                WHERE id = ${param_num}
-                RETURNING *
-            """
+            query, values = build_update_query("users", _COLUMNS, user_id, **kwargs)
             row = await connection.fetchrow(query, *values)
             return User.from_db_row(row)
         except Exception as e:

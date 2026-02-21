@@ -28,24 +28,24 @@ class Advertiser:
 
     @staticmethod
     def from_db_row(row) -> "Advertiser":
-        """Create Advertiser from database row with position-based unpacking."""
+        """Create Advertiser from database row with name-based column access."""
         return Advertiser(
-            id=row[0],
-            tenant_id=row[1],
-            name=row[2],
-            industry=row[3],
-            address=row[4],
-            city=row[5],
-            state=row[6],
-            postal_code=row[7],
-            country=row[8],
-            phone=row[9],
-            email=row[10],
-            website=row[11],
-            notes=row[12],
-            is_active=row[13],
-            created_at=row[14],
-            updated_at=row[15],
+            id=row["id"],
+            tenant_id=row["tenant_id"],
+            name=row["name"],
+            industry=row["industry"],
+            address=row["address"],
+            city=row["city"],
+            state=row["state"],
+            postal_code=row["postal_code"],
+            country=row["country"],
+            phone=row["phone"],
+            email=row["email"],
+            website=row["website"],
+            notes=row["notes"],
+            is_active=row["is_active"],
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
         )
 
     def clone_with_id(self, new_id: UUID) -> "Advertiser":

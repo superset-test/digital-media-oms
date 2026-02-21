@@ -51,7 +51,7 @@ All domain models follow the exact pattern from your conventions:
 
 Each model includes:
 - `@dataclass` decorator
-- `from_db_row(row)` static method with position-based unpacking
+- `from_db_row(row)` static method using name-based column access (row["column_name"])
 - `clone_with_id(new_id)` method for post-INSERT copies
 - Helper methods where appropriate
 

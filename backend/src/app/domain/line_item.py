@@ -32,27 +32,27 @@ class LineItem:
 
     @staticmethod
     def from_db_row(row) -> "LineItem":
-        """Create LineItem from database row with position-based unpacking."""
+        """Create LineItem from database row with name-based column access."""
         return LineItem(
-            id=row[0],
-            tenant_id=row[1],
-            order_id=row[2],
-            ad_unit_id=row[3],
-            rate_card_id=row[4],
-            line_number=row[5],
-            name=row[6],
-            description=row[7],
-            quantity=row[8],
-            unit_price=Decimal(str(row[9])),
-            discount_percentage=Decimal(str(row[10])),
-            subtotal=Decimal(str(row[11])),
-            start_date=row[12],
-            end_date=row[13],
-            status=row[14],
-            delivered_quantity=row[15],
-            notes=row[16],
-            created_at=row[17],
-            updated_at=row[18],
+            id=row["id"],
+            tenant_id=row["tenant_id"],
+            order_id=row["order_id"],
+            ad_unit_id=row["ad_unit_id"],
+            rate_card_id=row["rate_card_id"],
+            line_number=row["line_number"],
+            name=row["name"],
+            description=row["description"],
+            quantity=row["quantity"],
+            unit_price=Decimal(str(row["unit_price"])),
+            discount_percentage=Decimal(str(row["discount_percentage"])),
+            subtotal=Decimal(str(row["subtotal"])),
+            start_date=row["start_date"],
+            end_date=row["end_date"],
+            status=row["status"],
+            delivered_quantity=row["delivered_quantity"],
+            notes=row["notes"],
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
         )
 
     def clone_with_id(self, new_id: UUID) -> "LineItem":

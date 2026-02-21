@@ -22,24 +22,6 @@ from app.services.user_service import UserService
 router = APIRouter()
 
 
-@router.post("/auth/login", response_model=AuthResponse)
-async def login(request: AuthRequest):
-    """Authenticate user and return JWT token."""
-    service = UserService()
-
-    # For login, we need to determine tenant from email
-    # In production, you may want to require tenant_slug in the request
-    # For now, we'll try to find the user across all tenants
-    # This is a simplified approach - adjust based on your needs
-
-    # Simplified: This requires knowing the tenant_id
-    # You should modify this to suit your authentication flow
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Login requires tenant identification. Use /auth/login/{tenant_slug} instead.",
-    )
-
-
 @router.post("/auth/login/{tenant_slug}", response_model=AuthResponse)
 async def login_with_tenant(tenant_slug: str, request: AuthRequest):
     """Authenticate user within a specific tenant and return JWT token."""

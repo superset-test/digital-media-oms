@@ -7,7 +7,9 @@ from uuid import UUID
 import asyncpg
 
 from app.domain.tenant import Tenant
-from app.utils import SingletonMeta
+from app.utils import SingletonMeta, build_update_query
+
+_COLUMNS = "id, name, slug, is_active, settings, created_at, updated_at"
 
 
 class TenantRepository(metaclass=SingletonMeta):
@@ -27,10 +29,10 @@ class TenantRepository(metaclass=SingletonMeta):
                 settings = {}
 
             row = await connection.fetchrow(
-                """
+                f"""
                 INSERT INTO tenants (name, slug, is_active, settings)
                 VALUES ($1, $2, $3, $4)
-                RETURNING *
+                RETURNING {_COLUMNS}
                 """,
                 name,
                 slug,
@@ -45,7 +47,9 @@ class TenantRepository(metaclass=SingletonMeta):
     async def get_by_id(self, connection: asyncpg.Connection, tenant_id: UUID) -> Tenant | None:
         """Get tenant by ID."""
         try:
-            row = await connection.fetchrow("SELECT * FROM tenants WHERE id = $1", tenant_id)
+            row = await connection.fetchrow(
+                f"SELECT {_COLUMNS} FROM tenants WHERE id = $1", tenant_id
+            )
             return Tenant.from_db_row(row) if row else None
         except Exception as e:
             traceback.print_exc()
@@ -54,7 +58,7 @@ class TenantRepository(metaclass=SingletonMeta):
     async def get_by_slug(self, connection: asyncpg.Connection, slug: str) -> Tenant | None:
         """Get tenant by slug."""
         try:
-            row = await connection.fetchrow("SELECT * FROM tenants WHERE slug = $1", slug)
+            row = await connection.fetchrow(f"SELECT {_COLUMNS} FROM tenants WHERE slug = $1", slug)
             return Tenant.from_db_row(row) if row else None
         except Exception as e:
             traceback.print_exc()
@@ -66,8 +70,8 @@ class TenantRepository(metaclass=SingletonMeta):
         """List all tenants."""
         try:
             rows = await connection.fetch(
-                """
-                SELECT * FROM tenants
+                f"""
+                SELECT {_COLUMNS} FROM tenants
                 WHERE ($1 = false OR is_active = true)
                 ORDER BY name
                 """,
@@ -81,22 +85,7 @@ class TenantRepository(metaclass=SingletonMeta):
     async def update(self, connection: asyncpg.Connection, tenant_id: UUID, **kwargs) -> Tenant:
         """Update a tenant."""
         try:
-            set_clauses = []
-            values = []
-            param_num = 1
-
-            for key, value in kwargs.items():
-                set_clauses.append(f"{key} = ${param_num}")
-                values.append(value)
-                param_num += 1
-
-            values.append(tenant_id)
-            query = f"""
-                UPDATE tenants
-                SET {", ".join(set_clauses)}
-                WHERE id = ${param_num}
-                RETURNING *
-            """
+            query, values = build_update_query("tenants", _COLUMNS, tenant_id, **kwargs)
             row = await connection.fetchrow(query, *values)
             return Tenant.from_db_row(row)
         except Exception as e:

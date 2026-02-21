@@ -6,7 +6,9 @@ from uuid import UUID
 import asyncpg
 
 from app.domain.agency import Agency
-from app.utils import SingletonMeta
+from app.utils import SingletonMeta, build_update_query
+
+_COLUMNS = "id, tenant_id, name, address, city, state, postal_code, country, phone, email, website, notes, is_active, created_at, updated_at"
 
 
 class AgencyRepository(metaclass=SingletonMeta):
@@ -22,13 +24,13 @@ class AgencyRepository(metaclass=SingletonMeta):
         """Create a new agency."""
         try:
             row = await connection.fetchrow(
-                """
+                f"""
                 INSERT INTO agencies (
                     tenant_id, name, address, city, state, postal_code,
                     country, phone, email, website, notes, is_active
                 )
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-                RETURNING *
+                RETURNING {_COLUMNS}
                 """,
                 tenant_id,
                 name,
@@ -51,7 +53,9 @@ class AgencyRepository(metaclass=SingletonMeta):
     async def get_by_id(self, connection: asyncpg.Connection, agency_id: UUID) -> Agency | None:
         """Get agency by ID."""
         try:
-            row = await connection.fetchrow("SELECT * FROM agencies WHERE id = $1", agency_id)
+            row = await connection.fetchrow(
+                f"SELECT {_COLUMNS} FROM agencies WHERE id = $1", agency_id
+            )
             return Agency.from_db_row(row) if row else None
         except Exception as e:
             traceback.print_exc()
@@ -66,8 +70,8 @@ class AgencyRepository(metaclass=SingletonMeta):
         """List agencies by tenant."""
         try:
             rows = await connection.fetch(
-                """
-                SELECT * FROM agencies
+                f"""
+                SELECT {_COLUMNS} FROM agencies
                 WHERE tenant_id = $1 AND ($2 = false OR is_active = true)
                 ORDER BY name
                 """,
@@ -85,8 +89,8 @@ class AgencyRepository(metaclass=SingletonMeta):
         """Search agencies by name pattern."""
         try:
             rows = await connection.fetch(
-                """
-                SELECT * FROM agencies
+                f"""
+                SELECT {_COLUMNS} FROM agencies
                 WHERE tenant_id = $1 AND name ILIKE $2
                 ORDER BY name
                 """,
@@ -101,22 +105,7 @@ class AgencyRepository(metaclass=SingletonMeta):
     async def update(self, connection: asyncpg.Connection, agency_id: UUID, **kwargs) -> Agency:
         """Update an agency."""
         try:
-            set_clauses = []
-            values = []
-            param_num = 1
-
-            for key, value in kwargs.items():
-                set_clauses.append(f"{key} = ${param_num}")
-                values.append(value)
-                param_num += 1
-
-            values.append(agency_id)
-            query = f"""
-                UPDATE agencies
-                SET {", ".join(set_clauses)}
-                WHERE id = ${param_num}
-                RETURNING *
-            """
+            query, values = build_update_query("agencies", _COLUMNS, agency_id, **kwargs)
             row = await connection.fetchrow(query, *values)
             return Agency.from_db_row(row)
         except Exception as e:

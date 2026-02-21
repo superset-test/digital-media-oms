@@ -21,17 +21,17 @@ class User:
 
     @staticmethod
     def from_db_row(row) -> "User":
-        """Create User from database row with position-based unpacking."""
+        """Create User from database row with name-based column access."""
         return User(
-            id=row[0],
-            tenant_id=row[1],
-            email=row[2],
-            hashed_password=row[3],
-            full_name=row[4],
-            role=row[5],
-            is_active=row[6],
-            created_at=row[7],
-            updated_at=row[8],
+            id=row["id"],
+            tenant_id=row["tenant_id"],
+            email=row["email"],
+            hashed_password=row["hashed_password"],
+            full_name=row["full_name"],
+            role=row["role"],
+            is_active=row["is_active"],
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
         )
 
     def clone_with_id(self, new_id: UUID) -> "User":

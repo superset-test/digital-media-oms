@@ -27,23 +27,23 @@ class Agency:
 
     @staticmethod
     def from_db_row(row) -> "Agency":
-        """Create Agency from database row with position-based unpacking."""
+        """Create Agency from database row with name-based column access."""
         return Agency(
-            id=row[0],
-            tenant_id=row[1],
-            name=row[2],
-            address=row[3],
-            city=row[4],
-            state=row[5],
-            postal_code=row[6],
-            country=row[7],
-            phone=row[8],
-            email=row[9],
-            website=row[10],
-            notes=row[11],
-            is_active=row[12],
-            created_at=row[13],
-            updated_at=row[14],
+            id=row["id"],
+            tenant_id=row["tenant_id"],
+            name=row["name"],
+            address=row["address"],
+            city=row["city"],
+            state=row["state"],
+            postal_code=row["postal_code"],
+            country=row["country"],
+            phone=row["phone"],
+            email=row["email"],
+            website=row["website"],
+            notes=row["notes"],
+            is_active=row["is_active"],
+            created_at=row["created_at"],
+            updated_at=row["updated_at"],
         )
 
     def clone_with_id(self, new_id: UUID) -> "Agency":
