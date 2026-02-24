@@ -83,6 +83,97 @@ See the root `CLAUDE.md` file for detailed coding conventions including:
 pytest
 ```
 
+## Authentication & Authorization
+
+### User Roles
+
+The application supports three main user roles:
+
+1. **Super-Admin**: Has access to all tenants, can manage tenants, and create tenant admins
+2. **Tenant Admin**: Can manage users within their own tenant
+3. **User**: Regular users with tenant-scoped access
+
+### Creating a Super-Admin
+
+Super-admins must be created via CLI command:
+
+```bash
+cd src
+python -m app.cli create-super-admin \
+  --email admin@system.com \
+  --password YourSecurePassword123! \
+  --full-name "System Administrator"
+```
+
+**Note**: Run migration `008_add_super_admin_role.sql` before creating super-admins.
+
+### Authentication Flows
+
+#### Super-Admin Login
+```bash
+POST /auth/super-admin/login
+{
+  "email": "admin@system.com",
+  "password": "YourSecurePassword123!"
+}
+```
+
+#### Tenant User Login
+```bash
+POST /auth/login/{tenant_slug}
+{
+  "email": "user@tenant.com",
+  "password": "password123"
+}
+```
+
+### Role-Based Access Control
+
+#### Super-Admins Can:
+- Access all tenants and their resources
+- Create, read, update, and delete tenants
+- Create admin users for any tenant
+- Invite users to any tenant
+
+#### Tenant Admins Can:
+- Manage users within their tenant
+- Invite new users to their tenant
+- Access tenant-scoped resources
+
+#### Regular Users Can:
+- Access resources within their tenant
+- Change their own password
+- View their own profile
+
+### User Invitation System
+
+Admins can invite users with temporary passwords:
+
+```bash
+POST /tenants/{tenant_id}/users/invite
+{
+  "email": "newuser@tenant.com",
+  "fullName": "New User",
+  "role": "user"
+}
+```
+
+Response includes a temporary password. Users must change this password on first login.
+
+### Password Management
+
+Users can change their password:
+
+```bash
+POST /auth/change-password
+{
+  "oldPassword": "current_password",
+  "newPassword": "new_secure_password"
+}
+```
+
+When `must_change_password` is `true` (after invitation), users are required to change their password before accessing other features.
+
 ## Default Credentials
 
 A default admin user is created by the initial migration:

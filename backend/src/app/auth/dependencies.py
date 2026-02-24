@@ -15,7 +15,11 @@ security = HTTPBearer()
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> User:
-    """Get the current authenticated user from JWT token."""
+    """Get the current authenticated user from JWT token.
+
+    Note: This does NOT check must_change_password. Use get_current_user_with_password_check
+    for endpoints that require password change to be completed first.
+    """
     try:
         payload = decode_access_token(credentials.credentials)
         user_id = UUID(payload.get("user_id"))
@@ -51,11 +55,23 @@ async def get_current_user(
         )
 
 
+async def get_current_user_with_password_check(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """Get current user and enforce password change requirement."""
+    if current_user.must_change_password:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Password change required. Please change your password before accessing other features.",
+        )
+    return current_user
+
+
 async def ensure_current_user_tenant_admin(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    """Ensure current user has admin or manager role."""
-    if current_user.role not in ["admin", "manager"]:
+    """Ensure current user has admin or manager role (or is super-admin)."""
+    if not (current_user.is_super_admin or current_user.role in ["admin", "manager"]):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin or manager role required",
@@ -63,8 +79,24 @@ async def ensure_current_user_tenant_admin(
     return current_user
 
 
+async def ensure_current_user_super_admin(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """Ensure current user is a super-admin."""
+    if not current_user.is_super_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Super admin access required",
+        )
+    return current_user
+
+
 def verify_user_owns_resource(current_user: User, resource_tenant_id: UUID):
-    """Verify that the current user's tenant owns the resource."""
+    """Verify that the current user's tenant owns the resource (super-admins bypass check)."""
+    # Super-admins can access all resources
+    if current_user.is_super_admin:
+        return
+
     if current_user.tenant_id != resource_tenant_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

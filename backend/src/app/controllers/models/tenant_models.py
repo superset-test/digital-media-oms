@@ -59,3 +59,11 @@ class TenantsListResponse(AppBaseModel):
 
     tenants: list[TenantResponse] = Field(description="List of tenants")
     num_records: int = Field(description="Total number of records", examples=[10])
+
+
+class TenantAdminCreateRequest(AppBaseModel):
+    """Request model for creating a tenant admin user."""
+
+    email: str = Field(description="Admin user email", examples=["admin@tenant.com"])
+    password: str = Field(description="Admin password", examples=["SecurePass123!"])
+    full_name: str = Field(description="Admin full name", examples=["John Admin"])
