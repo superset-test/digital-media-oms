@@ -3,9 +3,12 @@
 from typing import Any
 from uuid import UUID
 
+from app.auth.password import PasswordManager
 from app.db.postgres import PostgresProvider
 from app.domain.tenant import Tenant
+from app.domain.user import User
 from app.repositories.tenant_repository import TenantRepository
+from app.repositories.user_repository import UserRepository
 from app.utils import SingletonMeta
 
 
@@ -14,6 +17,7 @@ class TenantService(metaclass=SingletonMeta):
 
     def __init__(self):
         self.repository = TenantRepository()
+        self.user_repository = UserRepository()
         self.postgres = PostgresProvider()
 
     async def create_tenant(
@@ -74,5 +78,32 @@ class TenantService(metaclass=SingletonMeta):
         try:
             async with connection.transaction():
                 return await self.repository.delete(connection, tenant_id)
+        finally:
+            await self.postgres.release_connection(connection)
+
+    async def create_tenant_admin(
+        self,
+        tenant_id: UUID,
+        email: str,
+        password: str,
+        full_name: str,
+        created_by_super_admin_id: UUID,
+    ) -> User:
+        """Create an admin user for a tenant."""
+        connection = await self.postgres.get_default_connection()
+        try:
+            hashed_password = PasswordManager.get_password_hash(password)
+            async with connection.transaction():
+                return await self.user_repository.create(
+                    connection,
+                    tenant_id=tenant_id,
+                    email=email,
+                    hashed_password=hashed_password,
+                    full_name=full_name,
+                    role="admin",
+                    is_active=True,
+                    is_super_admin=False,
+                    invited_by_user_id=created_by_super_admin_id,
+                )
         finally:
             await self.postgres.release_connection(connection)

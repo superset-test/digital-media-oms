@@ -23,7 +23,11 @@ def _get_secret_key() -> str:
 
 
 def create_access_token(
-    data: dict, tenant_id: UUID, user_id: UUID, expires_delta: timedelta | None = None
+    data: dict,
+    tenant_id: UUID,
+    user_id: UUID,
+    is_super_admin: bool = False,
+    expires_delta: timedelta | None = None,
 ) -> str:
     """Create a JWT access token."""
     to_encode = data.copy()
@@ -31,6 +35,7 @@ def create_access_token(
         {
             "tenant_id": str(tenant_id),
             "user_id": str(user_id),
+            "is_super_admin": is_super_admin,
         }
     )
 

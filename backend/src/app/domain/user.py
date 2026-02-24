@@ -16,6 +16,9 @@ class User:
     full_name: str | None
     role: str
     is_active: bool
+    is_super_admin: bool
+    invited_by_user_id: UUID | None
+    must_change_password: bool
     created_at: datetime | None
     updated_at: datetime | None
 
@@ -30,6 +33,9 @@ class User:
             full_name=row["full_name"],
             role=row["role"],
             is_active=row["is_active"],
+            is_super_admin=row["is_super_admin"],
+            invited_by_user_id=row["invited_by_user_id"],
+            must_change_password=row["must_change_password"],
             created_at=row["created_at"],
             updated_at=row["updated_at"],
         )
@@ -44,6 +50,9 @@ class User:
             full_name=self.full_name,
             role=self.role,
             is_active=self.is_active,
+            is_super_admin=self.is_super_admin,
+            invited_by_user_id=self.invited_by_user_id,
+            must_change_password=self.must_change_password,
             created_at=self.created_at,
             updated_at=self.updated_at,
         )

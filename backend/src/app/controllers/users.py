@@ -5,13 +5,18 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import (
+    ensure_current_user_super_admin,
+    get_current_user,
+)
 from app.auth.jwt import create_access_token
 from app.controllers.models.user_models import (
     AuthRequest,
     AuthResponse,
     ChangePasswordRequest,
     UserCreateRequest,
+    UserInviteRequest,
+    UserInviteResponse,
     UserResponse,
     UsersListResponse,
     UserUpdateRequest,
@@ -49,6 +54,33 @@ async def login_with_tenant(tenant_slug: str, request: AuthRequest):
         data={"sub": user.email},
         tenant_id=tenant.id,
         user_id=user.id,
+        is_super_admin=user.is_super_admin,
+    )
+
+    return AuthResponse(
+        user=UserResponse.from_domain(user),
+        access_token=access_token,
+        token_type="bearer",
+    )
+
+
+@router.post("/auth/super-admin/login", response_model=AuthResponse)
+async def login_super_admin(request: AuthRequest):
+    """Authenticate super-admin and return JWT token."""
+    user_service = UserService()
+    user = await user_service.authenticate_super_admin(request.email, request.password)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials or not a super-admin",
+        )
+
+    access_token = create_access_token(
+        data={"sub": user.email},
+        tenant_id=user.tenant_id,
+        user_id=user.id,
+        is_super_admin=True,
     )
 
     return AuthResponse(
@@ -88,22 +120,82 @@ async def create_user(
     tenant_uuid = UUID(tenant_id)
 
     # Verify user can create users in this tenant
-    if current_user.tenant_id != tenant_uuid:
+    # Super-admins can create users in any tenant
+    if not current_user.is_super_admin and current_user.tenant_id != tenant_uuid:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot create users in different tenant",
         )
 
+    # Only admins and super-admins can create users
+    if not (current_user.is_super_admin or current_user.role in ["admin", "manager"]):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can create users",
+        )
+
     service = UserService()
+
+    # Parse invited_by_user_id if provided
+    invited_by_id = (
+        UUID(request.invited_by_user_id) if request.invited_by_user_id else current_user.id
+    )
+
     user = await service.create_user(
         tenant_id=tenant_uuid,
         email=request.email,
         password=request.password,
         full_name=request.full_name,
         role=request.role,
+        invited_by_user_id=invited_by_id,
     )
 
     return UserResponse.from_domain(user)
+
+
+@router.post(
+    "/tenants/{tenant_id}/users/invite",
+    response_model=UserInviteResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def invite_user(
+    tenant_id: str,
+    request: UserInviteRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Invite a new user to a tenant with a temporary password."""
+    tenant_uuid = UUID(tenant_id)
+
+    # Verify user can invite users in this tenant
+    # Super-admins can invite to any tenant
+    if not current_user.is_super_admin and current_user.tenant_id != tenant_uuid:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot invite users to different tenant",
+        )
+
+    # Only admins and super-admins can invite users
+    if not (current_user.is_super_admin or current_user.role in ["admin", "manager"]):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can invite users",
+        )
+
+    service = UserService()
+
+    # Invite user with temporary password
+    user, temporary_password = await service.invite_user(
+        tenant_id=tenant_uuid,
+        email=request.email,
+        full_name=request.full_name,
+        role=request.role,
+        invited_by_user_id=current_user.id,
+    )
+
+    return UserInviteResponse(
+        user=UserResponse.from_domain(user),
+        temporary_password=temporary_password,
+    )
 
 
 @router.get("/users/{user_id}", response_model=UserResponse)

@@ -15,6 +15,7 @@ class UserCreateRequest(AppBaseModel):
     role: str = Field(
         default="user", description="User role", examples=["user", "admin", "manager"]
     )
+    invited_by_user_id: str | None = Field(None, description="ID of user who invited this user")
 
 
 class UserUpdateRequest(AppBaseModel):
@@ -42,6 +43,8 @@ class UserResponse(AppBaseModel):
     full_name: str | None = Field(description="Full name", examples=["John Doe"])
     role: str = Field(description="User role", examples=["user"])
     is_active: bool = Field(description="Whether user is active", examples=[True])
+    is_super_admin: bool = Field(description="Whether user is a super-admin", examples=[False])
+    invited_by_user_id: str | None = Field(None, description="ID of user who invited this user")
     created_at: str | None = Field(description="Creation timestamp")
     updated_at: str | None = Field(description="Last update timestamp")
 
@@ -55,6 +58,8 @@ class UserResponse(AppBaseModel):
             full_name=user.full_name,
             role=user.role,
             is_active=user.is_active,
+            is_super_admin=user.is_super_admin,
+            invited_by_user_id=str(user.invited_by_user_id) if user.invited_by_user_id else None,
             created_at=user.created_at.isoformat() if user.created_at else None,
             updated_at=user.updated_at.isoformat() if user.updated_at else None,
         )
@@ -80,3 +85,20 @@ class AuthResponse(AppBaseModel):
     user: UserResponse = Field(description="Authenticated user")
     access_token: str = Field(description="JWT access token")
     token_type: str = Field(default="bearer", description="Token type")
+
+
+class UserInviteRequest(AppBaseModel):
+    """Request model for inviting a user."""
+
+    email: str = Field(description="User email address", examples=["newuser@example.com"])
+    full_name: str = Field(description="Full name", examples=["Jane Doe"])
+    role: str = Field(default="user", description="User role", examples=["user", "manager"])
+
+
+class UserInviteResponse(AppBaseModel):
+    """Response model for user invitation."""
+
+    user: UserResponse = Field(description="Created user")
+    temporary_password: str = Field(
+        description="Temporary password (must be changed on first login)"
+    )
